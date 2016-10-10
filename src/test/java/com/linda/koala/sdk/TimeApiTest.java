@@ -13,9 +13,9 @@ public class TimeApiTest {
 	public static void main(String[] args) {
 		
 		KoalaClient client = new KoalaClient();
-		client.setAppKey("832f0a0abf384a1b905f39610733cb21");
-		client.setAppSec("19c043d1dc3b41fb8d89a5dd8594f4e0");
-		client.setGatewayUrl("http://test.gateway.aidaojia.com/gateway");
+		client.setAppKey("832f0a0abf384a45675710733cb21");
+		client.setAppSec("19c043d1dc3b41fb665668594f4e0");
+		client.setGatewayUrl("http://mtop.alibaba.com/gateway");
 		client.init();
 		
 		KoalaApi api = new KoalaApi();
@@ -30,7 +30,7 @@ public class TimeApiTest {
 		
 		KoalaApi qiniuApi = new KoalaApi();
 		//api名称
-		qiniuApi.setApi("adj.c.qiniuUpload");
+		qiniuApi.setApi("taobao.c.qiniuUpload");
 		//api版本
 		qiniuApi.setApiVersion("1.0.0");
 		//业务参数列表
@@ -45,7 +45,7 @@ public class TimeApiTest {
 		System.out.println(JSONUtils.toJSON(uploadResult));
 		
 		KoalaApi homeApi = new KoalaApi();
-		homeApi.setApi("adj.c.home");
+		homeApi.setApi("taobao.c.home");
 		homeApi.setApiVersion("1.0.0");
 		HashMap<String, Object> homeBody = new HashMap<String,Object>();
 		homeBody.put("communityId", "1");
