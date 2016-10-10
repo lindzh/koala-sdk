@@ -79,7 +79,7 @@ public class KoalaClient {
 	/**
 	 * 签名算法
 	 */
-	private BaseSign signer = new H5Sign();
+	private BaseSign signer = new SimpleSigner();
 	
 	Logger logger = Logger.getLogger("KoalaClient");
 	
