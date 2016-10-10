@@ -48,10 +48,6 @@ public class KoalaApi {
 	
 	private Map<String,String> urlParams;
 	
-	public KoalaApi(){
-		timestamp = System.currentTimeMillis();
-	}
-
 	public String getApi() {
 		return api;
 	}

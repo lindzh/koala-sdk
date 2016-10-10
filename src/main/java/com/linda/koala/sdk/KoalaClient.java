@@ -132,6 +132,7 @@ public class KoalaClient {
 		if(appKey==null||appSec==null||gatewayUrl==null){
 			throw new KoalaException("please init appkey and appsec and url first");
 		}
+		request.setTimestamp(System.currentTimeMillis());
 		try{
 			requestFlag.set(this.genRandomString());
 			KoalaRequest koalaRequest = this.build(request);
