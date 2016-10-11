@@ -209,6 +209,9 @@ public class KoalaClient {
 		if(httpComponent!=null){
 			httpComponent.close();
 		}
+		if(useKopTime){
+			this.timer.cancel();
+		}
 	}
 	
 	public KoalaResult sendRequest(KoalaApi request){
@@ -514,6 +517,19 @@ public class KoalaClient {
             }
         }
         return bodyMap;
+    }
+    
+    /**
+     * init后调用
+     * 获取服务器时间，同步服务器时间
+     * @return
+     */
+    public long getServerTime(){
+    	if(useKopTime){
+    		return time.get();
+    	}else{
+    		return System.currentTimeMillis();
+    	}
     }
 	
 	public String getAppKey() {

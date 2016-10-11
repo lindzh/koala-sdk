@@ -16,7 +16,7 @@ public class SimpleSigner implements BaseSign{
 
 	@Override
 	public String sign(String str) {
-		return "";
+		return "koala";
 	}
 
 }

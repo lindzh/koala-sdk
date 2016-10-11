@@ -10,14 +10,16 @@ import java.util.HashMap;
  */
 public class TimeApiTest {
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		
 		KoalaClient client = new KoalaClient();
-		client.setAppKey("832f0a0abf384a45675710733cb21");
-		client.setAppSec("19c043d1dc3b41fb665668594f4e0");
-		client.setGatewayUrl("http://mtop.alibaba.com/gateway");
+		client.setAppKey("e2c2ab71e885408ea213a4f465745529d");
+		client.setAppSec("77bb4062f3654556664d1c4ef3508ff73");
+		client.setGatewayUrl("http://api.mtop.toabao.com/openapi");
 		client.init();
-		
+		System.out.println(client.getServerTime());
+		Thread.currentThread().sleep(500);
+		System.out.println(client.getServerTime());
 		KoalaApi api = new KoalaApi();
 		//api名称
 		api.setApi("lin.test");
