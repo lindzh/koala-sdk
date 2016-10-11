@@ -8,11 +8,16 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.net.URLEncoder;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
@@ -76,6 +81,22 @@ public class KoalaClient {
 	
 	private AtomicInteger flagIndex = new AtomicInteger(100);
 	
+	
+	private Timer timer = null;
+	
+	private AtomicLong time = null;
+	
+	/**
+	 * 是否开启时间同步，避免时间不同步导致api不能访问
+	 */
+	private boolean useKopTime = true;
+	
+	private AtomicLong lastSyncTime = new AtomicLong(0);
+	
+	private final long SYNC_INTERVAL_6_HOUR = 1000*60*60*6;
+	
+	private final long SYNC_INTERVAL = SYNC_INTERVAL_6_HOUR;
+	
 	/**
 	 * 签名算法
 	 */
@@ -117,6 +138,68 @@ public class KoalaClient {
 	 */
 	public void init(){
 		httpComponent = new HttpComponent(maxConnections,httpDefaultMaxPerRoute);
+		if(useKopTime){
+			timer = new Timer();
+			time = new AtomicLong(0);
+			timer.scheduleAtFixedRate(new TimerTask(){
+				private AtomicBoolean inSync = new AtomicBoolean(false);
+				@Override
+				public void run() {
+					long now = System.currentTimeMillis();
+					//每6个小时同步一次系统时间
+					if(now-lastSyncTime.get()> SYNC_INTERVAL&& inSync.compareAndSet(false, true)){
+						requestKoalaTimeApi(null);
+					}else{
+						time.addAndGet(10);
+					}
+				}
+			}, new Date(), 10);
+			//同步系统时间
+			this.requestKoalaTimeApi(null);
+		}
+	}
+	
+	/**
+	 * kop.time 1.0
+	 * @param body
+	 * @return {"code":200,"data":{"time":1476171893751},"msg":"OK"}
+	 */
+	private long requestKoalaTimeApi(Map<String,Object> body){
+		KoalaApi api = new KoalaApi();
+		api.setApi("kop.time");
+		api.setApiVersion("1.0");
+		api.setRequestBody(body);
+		//该api业务参数为空无需填写
+		KoalaResult result = this.sendRequest(api);
+		if(result.getCode()==200){
+			Map timeMap = JSONUtils.fromJSON(result.getData(), Map.class);
+			long serverTime = (Long)timeMap.get("time");
+			//系统时间+15ms的返回时间
+			long clientTime = serverTime+15;
+			time.set(clientTime);
+			lastSyncTime.set(System.currentTimeMillis());
+			return clientTime;
+		}else{
+			throw new KoalaException("invalid koala config result "+JSONUtils.toJSON(result));
+		}
+	}
+	
+	/**
+	 * 报告bug 使用kop.time api
+	 * @param api
+	 * @param version
+	 * @param appkey
+	 * @param sign
+	 * @param bug
+	 */
+	public void reportBug(String api,String version,String appkey,String sign,String bug){
+		HashMap<String,Object> map = new HashMap<String,Object>();
+		map.put("r_api", api);
+		map.put("r_version", version);
+		map.put("r_appkey", appkey);
+		map.put("r_sign", sign);
+		map.put("r_bug", bug);
+		this.requestKoalaTimeApi(map);
 	}
 	
 	/**
@@ -132,7 +215,11 @@ public class KoalaClient {
 		if(appKey==null||appSec==null||gatewayUrl==null){
 			throw new KoalaException("please init appkey and appsec and url first");
 		}
-		request.setTimestamp(System.currentTimeMillis());
+		if(this.useKopTime){
+			request.setTimestamp(time.get());
+		}else{
+			request.setTimestamp(System.currentTimeMillis());
+		}
 		try{
 			requestFlag.set(this.genRandomString());
 			KoalaRequest koalaRequest = this.build(request);
@@ -467,5 +554,13 @@ public class KoalaClient {
 
 	public void setHttpDefaultMaxPerRoute(int httpDefaultMaxPerRoute) {
 		this.httpDefaultMaxPerRoute = httpDefaultMaxPerRoute;
+	}
+
+	public boolean isUseKopTime() {
+		return useKopTime;
+	}
+
+	public void setUseKopTime(boolean useKopTime) {
+		this.useKopTime = useKopTime;
 	}
 }
