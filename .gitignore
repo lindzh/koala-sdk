@@ -5,3 +5,5 @@ src/main/webapp/WEB-INF/lib
 .settings
 .project
 .classpath
+*.iml
+.idea
